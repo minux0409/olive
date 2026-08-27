@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { AppState, BinaryFiles, ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types'
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types'
 import { ControlPalette } from './components/ControlPalette'
+import { GuestCanvas } from './components/GuestCanvas'
+import { LoginScreen } from './components/LoginScreen'
+import { ProjectList } from './components/ProjectList'
 import { PropertiesPanel } from './components/PropertiesPanel'
 import { Toast, type ToastMessage } from './components/Toast'
 import { TopToolbar } from './components/TopToolbar'
@@ -11,10 +14,22 @@ import { createControlElements } from './controls/createControlElements'
 import type { ControlDefinition } from './controls/controlTypes'
 import { downloadPng } from './utils/exportImage'
 import { makeProjectFile, parseProjectFile } from './utils/projectFile'
+import { api } from './utils/api'
 import './App.css'
 
 const STORAGE_KEY = 'wireframe-studio-project'
-function App() {
+function GuestRoute({ shareId }: { shareId: string }) {
+  const [guestProject, setGuestProject] = useState<Awaited<ReturnType<typeof api.sharedProject>> | null>(null)
+  const [guestError, setGuestError] = useState('')
+  useEffect(() => { api.sharedProject(shareId).then(setGuestProject).catch((reason: unknown) => setGuestError(reason instanceof Error ? reason.message : '공유 프로젝트를 불러오지 못했습니다.')) }, [shareId])
+  if (guestError) return <main className="guest-error"><h1>공유 프로젝트를 열 수 없습니다.</h1><p>{guestError}</p></main>
+  if (!guestProject) return <main className="guest-error"><p>공유 프로젝트를 불러오는 중입니다...</p></main>
+  const document = guestProject.document as { elements?: ExcalidrawElement[]; appState?: AppState; files?: BinaryFiles }
+  return <GuestCanvas name={guestProject.name} elements={document.elements ?? []} appState={document.appState ?? {}} files={document.files ?? {}} />
+}
+
+function EditorApp() {
+  const [loggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem('wireframe-token')))
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null)
   const saveTimer = useRef<number | undefined>(undefined)
   const restorePending = useRef(true)
@@ -27,6 +42,9 @@ function App() {
   const [rightOpen, setRightOpen] = useState(true)
   const [messages, setMessages] = useState<ToastMessage[]>([])
   const [pendingType, setPendingType] = useState<ControlDefinition | null>(null)
+  const [serverProjectId, setServerProjectId] = useState<string | undefined>()
+  const [projects, setProjects] = useState<Awaited<ReturnType<typeof api.projects>>>([])
+  const [showProjects, setShowProjects] = useState(false)
   const selected = elements.find((element) => appState?.selectedElementIds[element.id]) ?? null
 
   const toast = (text: string, kind: ToastMessage['kind'] = 'info') => { const id = Date.now(); setMessages((current) => [...current, { id, kind, text }]); window.setTimeout(() => setMessages((current) => current.filter((message) => message.id !== id)), 3200) }
@@ -40,6 +58,17 @@ function App() {
   const updateSelected = (patch: Partial<ExcalidrawElement>) => { if (!selected || !apiRef.current) return; apiRef.current.updateScene({ elements: apiRef.current.getSceneElements().map((element) => element.id === selected.id ? { ...element, ...patch } as ExcalidrawElement : element) }) }
   const handleDrop = (type: string, clientX: number, clientY: number) => { const definition = controlDefinitions.find((item) => item.type === type); const state = apiRef.current?.getAppState(); if (!definition || !state) return; const zoom = state.zoom.value; addControl(definition, clientX / zoom - state.scrollX - definition.defaultWidth / 2, clientY / zoom - state.scrollY - definition.defaultHeight / 2) }
   const exportPng = async () => { try { if (!appState) return; await downloadPng(elements, appState, files, projectName); toast('PNG 파일을 내보냈습니다.', 'success') } catch (error) { toast(error instanceof Error ? error.message : 'PNG 내보내기에 실패했습니다.', 'error') } }
-  return <div className="studio"><TopToolbar projectName={projectName} setProjectName={setProjectName} status={status} leftOpen={leftOpen} rightOpen={rightOpen} onNew={newProject} onOpen={openFile} onSave={saveFile} onPng={exportPng} onClear={clear} toggleLeft={() => setLeftOpen(!leftOpen)} toggleRight={() => setRightOpen(!rightOpen)} /><div className="workspace">{leftOpen && <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />}<WireframeCanvas onMount={(api) => { apiRef.current = api }} onChange={onChange} onDropControl={handleDrop} onAddAtCenter={() => setPendingType(controlDefinitions[0])} empty={!elements.length} />{rightOpen && <PropertiesPanel element={selected} onUpdate={updateSelected} />}</div>{pendingType && <div className="quick-add"><span>추가할 컨트롤을 선택하세요</span><div>{controlDefinitions.map((definition) => <button key={definition.type} onClick={() => addControl(definition)}>{definition.name}</button>)}</div><button className="close-quick" onClick={() => setPendingType(null)}>닫기</button></div>}<Toast messages={messages} /></div>
+  const saveToServer = async () => { if (!appState) return; try { const result = await api.saveProject(projectName, { elements, appState, files }, serverProjectId); setServerProjectId(result.id); setStatus('서버 저장 완료'); const link = `${window.location.origin}/share/${result.id}`; await navigator.clipboard?.writeText(link); toast(`서버에 저장했습니다. 공유 링크: ${link}`, 'success') } catch (error) { toast(error instanceof Error ? error.message : '서버 저장에 실패했습니다.', 'error') } }
+  const showProjectList = async () => { try { setProjects(await api.projects()); setShowProjects(true) } catch (error) { toast(error instanceof Error ? error.message : '프로젝트 목록을 불러오지 못했습니다.', 'error') } }
+  const openRemoteProject = async (project: Awaited<ReturnType<typeof api.projects>>[number]) => { try { const remote = await api.sharedProject(project.id); const document = remote.document as { elements?: ExcalidrawElement[]; appState?: AppState; files?: BinaryFiles }; const editor = apiRef.current; if (editor) editor.updateScene({ elements: document.elements ?? [], appState: { ...editor.getAppState(), ...document.appState } }); setElements(document.elements ?? []); setFiles(document.files ?? {}); setProjectName(remote.name); setServerProjectId(remote.id); setShowProjects(false) } catch (error) { toast(error instanceof Error ? error.message : '프로젝트를 열지 못했습니다.', 'error') } }
+  if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />
+  return <div className="studio"><TopToolbar projectName={projectName} setProjectName={setProjectName} status={status} leftOpen={leftOpen} rightOpen={rightOpen} onNew={newProject} onProjects={showProjectList} onOpen={openFile} onSave={saveFile} onServerSave={saveToServer} onPng={exportPng} onClear={clear} onLogout={() => { localStorage.removeItem('wireframe-token'); setLoggedIn(false) }} toggleLeft={() => setLeftOpen(!leftOpen)} toggleRight={() => setRightOpen(!rightOpen)} /><div className="workspace">{leftOpen && <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />}<WireframeCanvas onMount={(api) => { apiRef.current = api }} onChange={onChange} onDropControl={handleDrop} onAddAtCenter={() => setPendingType(controlDefinitions[0])} empty={!elements.length} />{rightOpen && <PropertiesPanel element={selected} onUpdate={updateSelected} />}</div>{showProjects && <div className="project-list-wrap"><ProjectList projects={projects} onOpen={openRemoteProject} /><button onClick={() => setShowProjects(false)}>닫기</button></div>}{pendingType && <div className="quick-add"><span>추가할 컨트롤을 선택하세요</span><div>{controlDefinitions.map((definition) => <button key={definition.type} onClick={() => addControl(definition)}>{definition.name}</button>)}</div><button className="close-quick" onClick={() => setPendingType(null)}>닫기</button></div>}<Toast messages={messages} /></div>
+}
+function App() {
+  const shareId = window.location.pathname.match(/^\/share\/([^/]+)/)?.[1]
+  const [loggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem('wireframe-token')))
+  if (shareId) return <GuestRoute shareId={shareId} />
+  if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />
+  return <EditorApp />
 }
 export default App
