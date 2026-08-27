@@ -1,15 +1,15 @@
 import cors from 'cors'
 import express from 'express'
 import crypto from 'node:crypto'
+import os from 'node:os'
 
 const app = express()
 const port = Number(process.env.PORT || 4000)
-const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5174'
 const user = { id: 'super', password: '1234', name: '슈퍼 관리자' }
 const sessions = new Map()
 const projects = new Map()
 
-app.use(cors({ origin: frontendOrigin }))
+app.use(cors({ origin: true }))
 app.use(express.json({ limit: '10mb' }))
 
 function authToken(request) {
@@ -29,6 +29,10 @@ function projectSummary(project) {
 }
 
 app.get('/api/health', (_request, response) => response.json({ ok: true }))
+app.get('/api/network-addresses', (_request, response) => {
+  const addresses = Object.values(os.networkInterfaces()).flatMap((items) => items ?? []).filter((item) => item.family === 'IPv4' && !item.internal).map((item) => ({ address: item.address, shareBaseUrl: `http://${item.address}:${process.env.FRONTEND_PORT || '5174'}` }))
+  response.json(addresses)
+})
 app.post('/api/auth/login', (request, response) => {
   const { id, password } = request.body ?? {}
   if (id !== user.id || password !== user.password) return response.status(401).json({ message: '아이디 또는 비밀번호가 올바르지 않습니다.' })
