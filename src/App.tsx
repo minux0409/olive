@@ -20,6 +20,7 @@ import { api } from './utils/api'
 import './App.css'
 
 const STORAGE_KEY = 'wireframe-studio-project'
+const SERVER_ID_KEY = 'wireframe-studio-server-id'
 
 function GuestRoute({ shareId }: { shareId: string }) {
   const [guestProject, setGuestProject] = useState<Awaited<ReturnType<typeof api.sharedProject>> | null>(null)
@@ -60,15 +61,29 @@ function EditorApp() {
     try { return parseProjectFile(JSON.parse(saved)).projectName } catch { return '내 와이어프레임' }
   })
   const [status, setStatus] = useState('저장됨')
-  const [leftOpen, setLeftOpen] = useState(true)
-  const [rightOpen, setRightOpen] = useState(true)
   const [messages, setMessages] = useState<ToastMessage[]>([])
   const [pendingType, setPendingType] = useState<ControlDefinition | null>(null)
-  const [serverProjectId, setServerProjectId] = useState<string | undefined>()
+  const [serverProjectId, setServerProjectId] = useState<string | undefined>(() => localStorage.getItem(SERVER_ID_KEY) ?? undefined)
   const [shareUrl, setShareUrl] = useState<string | undefined>()
   const [projects, setProjects] = useState<Awaited<ReturnType<typeof api.projects>>>([])
   const [showProjects, setShowProjects] = useState(false)
   const selected = elements.find((element) => appState?.selectedElementIds[element.id]) ?? null
+
+  // Rebuild the share URL for a project that was already published to the server in a previous session.
+  useEffect(() => {
+    if (!serverProjectId) return
+    api.networkAddresses().then((addresses) => {
+      const baseUrl = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+        ? window.location.origin
+        : addresses[0]?.shareBaseUrl || window.location.origin
+      setShareUrl(`${baseUrl}/share/${serverProjectId}`)
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (serverProjectId) localStorage.setItem(SERVER_ID_KEY, serverProjectId)
+    else localStorage.removeItem(SERVER_ID_KEY)
+  }, [serverProjectId])
 
   const toast = (text: string, kind: ToastMessage['kind'] = 'info') => {
     const id = Date.now()
@@ -402,8 +417,6 @@ function EditorApp() {
         setProjectName={setProjectName}
         status={status}
         shareUrl={shareUrl}
-        leftOpen={leftOpen}
-        rightOpen={rightOpen}
         onNew={newProject}
         onProjects={showProjectList}
         onOpen={openFile}
@@ -413,22 +426,18 @@ function EditorApp() {
         onPng={exportPng}
         onClear={clear}
         onLogout={() => { localStorage.removeItem('wireframe-token'); setLoggedIn(false) }}
-        toggleLeft={() => setLeftOpen(!leftOpen)}
-        toggleRight={() => setRightOpen(!rightOpen)}
       />
       <div className="workspace">
-        {leftOpen && (
-          <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd', width: '200px', overflow: 'hidden' }}>
-            <SlidePanel
-              slides={slides}
-              currentSlideId={currentSlideId}
-              onSelectSlide={handleSlideSelect}
-              onAddSlide={handleAddSlide}
-              onRenameSlide={handleRenameSlide}
-              onDeleteSlide={handleDeleteSlide}
-            />
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd', width: '200px', overflow: 'hidden' }}>
+          <SlidePanel
+            slides={slides}
+            currentSlideId={currentSlideId}
+            onSelectSlide={handleSlideSelect}
+            onAddSlide={handleAddSlide}
+            onRenameSlide={handleRenameSlide}
+            onDeleteSlide={handleDeleteSlide}
+          />
+        </div>
         <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />
         <div className="canvas-wrap">
           <WireframeCanvas
@@ -439,7 +448,7 @@ function EditorApp() {
             empty={!elements.length}
           />
         </div>
-        {rightOpen && <PropertiesPanel element={selected} onUpdate={updateSelected} />}
+        <PropertiesPanel element={selected} onUpdate={updateSelected} />
       </div>
       {showProjects && (
         <div className="project-list-wrap">
