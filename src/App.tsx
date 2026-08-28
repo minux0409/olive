@@ -76,18 +76,6 @@ function EditorApp() {
     window.setTimeout(() => setMessages((current) => current.filter((message) => message.id !== id)), 3200)
   }
 
-  // Recalculate Excalidraw's cached canvas offset whenever the surrounding layout shifts,
-  // otherwise pointer coordinates drift out of sync with the visible canvas.
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => apiRef.current?.refresh())
-    return () => window.cancelAnimationFrame(id)
-  }, [leftOpen, rightOpen])
-  useEffect(() => {
-    const handleResize = () => apiRef.current?.refresh()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
   // Initialize first slide on component mount
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -444,7 +432,7 @@ function EditorApp() {
         <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />
         <div className="canvas-wrap">
           <WireframeCanvas
-            onMount={(api) => { apiRef.current = api; window.requestAnimationFrame(() => api.refresh()) }}
+            onMount={(api) => { apiRef.current = api }}
             onChange={onChange}
             onDropControl={handleDrop}
             onAddAtCenter={() => setPendingType(controlDefinitions[0])}
