@@ -1,0 +1,187 @@
+.slide-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f5f5f5;
+  border-right: 1px solid #ddd;
+  overflow: hidden;
+}
+
+.slide-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  background-color: #fff;
+}
+
+.slide-panel-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.add-slide-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.add-slide-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+}
+
+.new-slide-input {
+  padding: 8px;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  gap: 4px;
+}
+
+.new-slide-input input {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.new-slide-input button {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.new-slide-input button:hover {
+  background-color: #f0f0f0;
+}
+
+.new-slide-input button:first-of-type:hover {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+.slide-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slide-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.slide-item:hover {
+  background-color: #f9f9f9;
+  border-color: #bbb;
+}
+
+.slide-item.active {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.slide-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.slide-item.active .slide-number {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.slide-name {
+  flex: 1;
+  font-size: 12px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px;
+}
+
+.slide-rename-input {
+  flex: 1;
+  padding: 2px 4px;
+  border: 1px solid #2196f3;
+  border-radius: 2px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.delete-slide-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background-color: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.delete-slide-btn:hover {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
+.slide-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.slide-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.slide-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.slide-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}

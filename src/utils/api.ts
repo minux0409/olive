@@ -7,7 +7,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }
 
-export interface RemoteProject { id: string; name: string; updatedAt: string; shareUrl: string }
+export interface RemoteProject { id: string; name: string; updatedAt: string; shareUrl: string; slideCount?: number }
 export interface SharedProject extends RemoteProject { document: Record<string, unknown> }
 export interface NetworkAddress { address: string; shareBaseUrl: string }
 export const api = {
@@ -17,4 +17,8 @@ export const api = {
   sharedProject: (id: string) => request<SharedProject>(`/projects/${id}`),
   deleteProject: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
   networkAddresses: () => request<NetworkAddress[]>('/network-addresses'),
+  // Slide endpoints
+  addSlide: (projectId: string, name: string, slide: Record<string, unknown>) => request<Record<string, unknown>>(`/projects/${projectId}/slides`, { method: 'POST', body: JSON.stringify({ name, slide }) }),
+  updateSlide: (projectId: string, slideId: string, slide: Record<string, unknown>) => request<Record<string, unknown>>(`/projects/${projectId}/slides/${slideId}`, { method: 'PUT', body: JSON.stringify({ slide }) }),
+  deleteSlide: (projectId: string, slideId: string) => request<void>(`/projects/${projectId}/slides/${slideId}`, { method: 'DELETE' }),
 }

@@ -25,7 +25,7 @@ function requireAuth(request, response, next) {
   next()
 }
 function projectSummary(project) {
-  return { id: project.id, name: project.name, updatedAt: project.updatedAt, shareUrl: `/share/${project.id}` }
+  return { id: project.id, name: project.name, updatedAt: project.updatedAt, shareUrl: `/share/${project.id}`, slideCount: project.document.slides?.length ?? 0 }
 }
 
 app.get('/api/health', (_request, response) => response.json({ ok: true }))
@@ -68,6 +68,53 @@ app.delete('/api/projects/:id', requireAuth, (request, response) => {
   const project = projects.get(request.params.id)
   if (!project || project.ownerId !== request.userId) return response.status(404).json({ message: '프로젝트를 찾을 수 없습니다.' })
   projects.delete(project.id); response.status(204).end()
+})
+
+// Slide management endpoints
+app.post('/api/projects/:projectId/slides', requireAuth, (request, response) => {
+  const project = projects.get(request.params.projectId)
+  if (!project || project.ownerId !== request.userId) return response.status(404).json({ message: '프로젝트를 찾을 수 없습니다.' })
+  
+  const { name, slide } = request.body ?? {}
+  if (typeof name !== 'string' || !slide) return response.status(400).json({ message: '슬라이드 데이터가 올바르지 않습니다.' })
+  
+  if (!Array.isArray(project.document.slides)) project.document.slides = []
+  project.document.slides.push(slide)
+  project.updatedAt = new Date().toISOString()
+  response.status(201).json(slide)
+})
+
+app.put('/api/projects/:projectId/slides/:slideId', requireAuth, (request, response) => {
+  const project = projects.get(request.params.projectId)
+  if (!project || project.ownerId !== request.userId) return response.status(404).json({ message: '프로젝트를 찾을 수 없습니다.' })
+  
+  const { slideId } = request.params
+  const { slide } = request.body ?? {}
+  if (!slide) return response.status(400).json({ message: '슬라이드 데이터가 올바르지 않습니다.' })
+  
+  if (!Array.isArray(project.document.slides)) return response.status(404).json({ message: '슬라이드를 찾을 수 없습니다.' })
+  
+  const index = project.document.slides.findIndex(s => s.id === slideId)
+  if (index === -1) return response.status(404).json({ message: '슬라이드를 찾을 수 없습니다.' })
+  
+  project.document.slides[index] = { ...project.document.slides[index], ...slide, updatedAt: new Date().toISOString() }
+  project.updatedAt = new Date().toISOString()
+  response.json(project.document.slides[index])
+})
+
+app.delete('/api/projects/:projectId/slides/:slideId', requireAuth, (request, response) => {
+  const project = projects.get(request.params.projectId)
+  if (!project || project.ownerId !== request.userId) return response.status(404).json({ message: '프로젝트를 찾을 수 없습니다.' })
+  
+  const { slideId } = request.params
+  if (!Array.isArray(project.document.slides)) return response.status(404).json({ message: '슬라이드를 찾을 수 없습니다.' })
+  
+  const index = project.document.slides.findIndex(s => s.id === slideId)
+  if (index === -1) return response.status(404).json({ message: '슬라이드를 찾을 수 없습니다.' })
+  
+  project.document.slides.splice(index, 1)
+  project.updatedAt = new Date().toISOString()
+  response.status(204).end()
 })
 
 app.listen(port, '0.0.0.0', () => console.log(`Wireframe Studio API listening on http://localhost:${port}`))
