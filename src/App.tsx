@@ -29,15 +29,15 @@ function GuestRoute({ shareId }: { shareId: string }) {
   if (guestError) return <main className="guest-error"><h1>공유 프로젝트를 열 수 없습니다.</h1><p>{guestError}</p></main>
   if (!guestProject) return <main className="guest-error"><p>공유 프로젝트를 불러오는 중입니다...</p></main>
   
-  let firstSlide: Slide | undefined
+  let slides: Slide[] = []
   try {
-    firstSlide = parseProjectFile(guestProject.document).slides[0]
+    slides = parseProjectFile(guestProject.document).slides
   } catch {
-    firstSlide = undefined
+    slides = []
   }
-  if (!firstSlide) return <main className="guest-error"><p>슬라이드가 없습니다.</p></main>
+  if (!slides.length) return <main className="guest-error"><p>슬라이드가 없습니다.</p></main>
   
-  return <GuestCanvas name={guestProject.name} elements={firstSlide.elements ?? []} appState={firstSlide.appState ?? {}} files={firstSlide.files ?? {}} />
+  return <GuestCanvas name={guestProject.name} slides={slides} />
 }
 
 function EditorApp() {
