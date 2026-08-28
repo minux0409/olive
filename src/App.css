@@ -20,10 +20,10 @@
 .rail-scroll { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding:0 14px 16px; }
 .rail-group { margin-bottom:20px; }
 .rail-group h3 { font-size:11px; color:var(--muted); margin:0 0 8px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; }
-.rail-list { display:flex; flex-direction:column; gap:6px; }
-.rail-item { display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); padding:7px 9px; font-size:12px; text-align:left; }
+.rail-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.rail-item { display:flex; flex-direction:column; align-items:center; gap:6px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); padding:8px 6px; font-size:11px; text-align:center; min-height:70px; }
 .rail-item:hover { border-color:var(--accent); box-shadow:0 3px 8px #26313b14; }
-.rail-item .control-preview { flex:0 0 40px; width:40px; height:22px; }
+.rail-item .control-preview { width:100%; height:32px; overflow:hidden; }
 .rail-empty { color:var(--muted); font-size:12px; text-align:center; margin-top:20px; }
 .canvas-wrap { flex:1; min-width:0; min-height:0; display:flex; }
 .canvas-wrap .canvas-shell { flex:1; }
