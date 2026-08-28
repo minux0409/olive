@@ -10,6 +10,7 @@ export const controlDefinitions: ControlDefinition[] = [
   { type: 'select', name: '드롭다운', category: 'basic', description: '옵션 목록 선택 상자', defaultWidth: 210, defaultHeight: 42 },
   { type: 'toggle', name: '토글 스위치', category: 'basic', description: '설정의 켜기와 끄기', defaultWidth: 150, defaultHeight: 38 },
   { type: 'image', name: '이미지 자리표시자', category: 'basic', description: '이미지가 들어갈 영역', defaultWidth: 220, defaultHeight: 140 },
+  { type: 'icon', name: '아이콘', category: 'basic', description: '아이콘이 들어갈 자리표시자', defaultWidth: 56, defaultHeight: 56 },
   { type: 'card', name: '카드', category: 'layout', description: '콘텐츠를 담는 영역', defaultWidth: 280, defaultHeight: 180 },
   { type: 'divider', name: '구분선', category: 'layout', description: '콘텐츠를 나누는 선', defaultWidth: 320, defaultHeight: 12 },
   { type: 'topbar', name: '상단바', category: 'layout', description: '페이지 상단 내비게이션', defaultWidth: 420, defaultHeight: 64 },

@@ -28,6 +28,7 @@ export function createControlElements(definition: ControlDefinition, x: number, 
     case 'select': elements = withGroup([rectangle(x, y, w, h), text(x + 14, y + 11, '옵션을 선택하세요', 16), text(x + w - 30, y + 9, '⌄', 24)]); break
     case 'toggle': elements = withGroup([rectangle(x, y + 4, 54, 30, '#dbe3ea'), ellipse(x + 27, y + 7, 24, 24), text(x + 70, y + 7, '켜짐', 16)]); break
     case 'image': elements = withGroup([rectangle(x, y, w, h), line(x + 10, y + 10, [[0, 0], [w - 20, h - 20]]), line(x + w - 10, y + 10, [[0, h - 20], [-w + 20, 0]]), text(x + 68, y + h / 2 - 10, '이미지', 16)]); break
+    case 'icon': elements = withGroup([rectangle(x, y, w, h, '#f7f8f9'), ellipse(x + w / 2 - 14, y + h / 2 - 14, 28, 28)]); break
     case 'card': elements = withGroup([rectangle(x, y, w, h), text(x + 18, y + 18, '카드 제목'), line(x + 18, y + 54, [[0, 0], [w - 36, 0]]), text(x + 18, y + 76, '카드 콘텐츠', 16)]); break
     case 'divider': elements = [line(x, y + 5, [[0, 0], [w, 0]])]; break
     case 'topbar': elements = withGroup([rectangle(x, y, w, h), text(x + 18, y + 17, '로고'), text(x + w - 128, y + 17, '메뉴   메뉴', 15)]); break
