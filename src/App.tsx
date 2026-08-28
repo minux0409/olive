@@ -60,7 +60,6 @@ function EditorApp() {
     if (!saved) return '내 와이어프레임'
     try { return parseProjectFile(JSON.parse(saved)).projectName } catch { return '내 와이어프레임' }
   })
-  const [status, setStatus] = useState('저장됨')
   const [messages, setMessages] = useState<ToastMessage[]>([])
   const [pendingType, setPendingType] = useState<ControlDefinition | null>(null)
   const [serverProjectId, setServerProjectId] = useState<string | undefined>(() => localStorage.getItem(SERVER_ID_KEY) ?? undefined)
@@ -152,7 +151,6 @@ function EditorApp() {
     setFiles(nextFiles)
     if (restorePending.current) return
     
-    setStatus('자동 저장 중...')
     window.clearTimeout(saveTimer.current)
     saveTimer.current = window.setTimeout(() => {
       // Update current slide
@@ -165,7 +163,6 @@ function EditorApp() {
         setSlides(updatedSlides)
         localStorage.setItem(STORAGE_KEY, JSON.stringify(makeProjectFile(projectName, updatedSlides)))
       }
-      setStatus('자동 저장 완료')
     }, 700)
   }
 
@@ -249,7 +246,6 @@ function EditorApp() {
     link.href = URL.createObjectURL(blob)
     link.click()
     URL.revokeObjectURL(link.href)
-    setStatus('저장됨')
     toast('프로젝트 파일을 저장했습니다.', 'success')
   }
 
@@ -350,7 +346,6 @@ function EditorApp() {
         : addresses[0]?.shareBaseUrl || window.location.origin
       const link = `${baseUrl}/share/${result.id}`
       setShareUrl(link)
-      setStatus('서버 저장 완료')
       await navigator.clipboard?.writeText(link)
       toast('서버에 저장했습니다. 아래 공유 URL을 사용할 수 있습니다.', 'success')
     } catch (error) {
@@ -415,7 +410,6 @@ function EditorApp() {
       <TopToolbar
         projectName={projectName}
         setProjectName={setProjectName}
-        status={status}
         shareUrl={shareUrl}
         onNew={newProject}
         onProjects={showProjectList}

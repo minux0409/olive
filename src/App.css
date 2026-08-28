@@ -10,7 +10,6 @@
 .icon-button { padding:7px 9px !important; }
 .project-meta { display:flex; align-items:center; gap:9px; }
 .project-meta input { width:148px; background:#202a32; border:1px solid #53616c; color:#fff; padding:8px 9px; font-size:12px; border-radius:3px; }
-.save-status { color:#b9c8d0; font:11px 'DM Mono',monospace; white-space:nowrap; }.save-status i { display:inline-block; width:7px;height:7px;border-radius:50%;background:#79c69b;margin-right:6px; }
 .workspace { display:flex; height:calc(100vh - 68px); }
 .left-panel,.right-panel { background:var(--panel); overflow:auto; }.left-panel { border-right:1px solid var(--line); padding:23px 16px; }.right-panel { border-left:1px solid var(--line); padding:23px 18px; flex:0 0 262px; }
 .panel-heading,.property-title { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }.eyebrow { display:block; color:var(--accent); font:10px 'DM Mono',monospace; letter-spacing:1.4px; margin-bottom:4px; }.panel-heading h1,.property-title h2 { font-size:21px; margin:0; letter-spacing:-.5px; }.count,.type-tag { background:#e8ecef; color:var(--muted); font:11px 'DM Mono',monospace; padding:3px 6px; }
