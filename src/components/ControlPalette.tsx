@@ -3,7 +3,7 @@ import type { ControlCategory, ControlDefinition, ControlType } from '../control
 
 interface Props { definitions: ControlDefinition[]; onAdd: (definition: ControlDefinition) => void }
 
-const CATEGORY_LABELS: Record<ControlCategory, string> = { basic: '기본', layout: '레이아웃' }
+const CATEGORY_LABELS: Record<ControlCategory, string> = { basic: '기본', layout: '레이아웃', icon: '아이콘' }
 
 // Miniature mockups that mirror each control's real appearance instead of a generic box.
 function Preview({ type }: { type: string }) {
@@ -26,8 +26,26 @@ function Preview({ type }: { type: string }) {
       return <span className="control-preview mini-row"><span className="mini-toggle"><span className="mini-toggle-dot" /></span><span className="mini-label">켜짐</span></span>
     case 'image':
       return <span className="control-preview"><span className="mini-box mini-image"><span className="mini-x" />이미지</span></span>
-    case 'icon':
-      return <span className="control-preview"><span className="mini-icon-circle" /></span>
+    case 'icon-star':
+      return <span className="control-preview"><span className="mini-icon-circle">★</span></span>
+    case 'icon-home':
+      return <span className="control-preview"><span className="mini-icon-circle mini-icon-home"><span className="mini-icon-roof" /><span className="mini-icon-base" /></span></span>
+    case 'icon-search':
+      return <span className="control-preview"><span className="mini-icon-circle mini-icon-search"><span className="mini-icon-lens" /></span></span>
+    case 'icon-settings':
+      return <span className="control-preview"><span className="mini-icon-circle">⚙</span></span>
+    case 'icon-check':
+      return <span className="control-preview"><span className="mini-icon-circle">✓</span></span>
+    case 'icon-close':
+      return <span className="control-preview"><span className="mini-icon-circle">✕</span></span>
+    case 'icon-plus':
+      return <span className="control-preview"><span className="mini-icon-circle">+</span></span>
+    case 'icon-user':
+      return <span className="control-preview"><span className="mini-icon-circle mini-icon-user"><span className="mini-icon-head" /><span className="mini-icon-body" /></span></span>
+    case 'icon-info':
+      return <span className="control-preview"><span className="mini-icon-circle">i</span></span>
+    case 'icon-heart':
+      return <span className="control-preview"><span className="mini-icon-circle">♥</span></span>
     case 'card':
       return <span className="control-preview"><span className="mini-box mini-card"><b>카드 제목</b><span className="mini-line" /><span className="mini-line" style={{ width: '60%' }} /></span></span>
     case 'divider':

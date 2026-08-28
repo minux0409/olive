@@ -1,8 +1,9 @@
-export type ControlCategory = 'basic' | 'layout'
+export type ControlCategory = 'basic' | 'layout' | 'icon'
 
 export type ControlType =
-  | 'text' | 'button' | 'input' | 'textarea' | 'checkbox' | 'radio' | 'select' | 'toggle' | 'image' | 'icon'
+  | 'text' | 'button' | 'input' | 'textarea' | 'checkbox' | 'radio' | 'select' | 'toggle' | 'image'
   | 'card' | 'divider' | 'topbar' | 'tabs' | 'sidebar' | 'modal' | 'table' | 'mobile' | 'browser'
+  | 'icon-star' | 'icon-home' | 'icon-search' | 'icon-settings' | 'icon-check' | 'icon-close' | 'icon-plus' | 'icon-user' | 'icon-info' | 'icon-heart'
 
 export interface ControlDefinition {
   type: ControlType

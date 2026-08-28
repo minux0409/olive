@@ -29,7 +29,12 @@
 .mini-toggle-dot { position:absolute; top:1.5px; right:1.5px; width:10px; height:10px; border-radius:50%; background:#34383f; }
 .mini-image { align-items:center; justify-content:center; position:relative; font-size:6.5px; color:#34383f; }
 .mini-x { position:absolute; inset:2px; background:linear-gradient(to bottom right, transparent calc(50% - 0.5px), #7f8b94 50%, transparent calc(50% + 0.5px)), linear-gradient(to top right, transparent calc(50% - 0.5px), #7f8b94 50%, transparent calc(50% + 0.5px)); }
-.mini-icon-circle { width:22px; height:22px; border-radius:50%; border:1.4px solid #34383f; background:#f7f8f9; }
+.mini-icon-circle { width:26px; height:26px; border-radius:50%; border:1.4px solid #34383f; background:#f7f8f9; display:flex; align-items:center; justify-content:center; font-size:13px; color:#34383f; position:relative; }
+.mini-icon-home .mini-icon-roof { position:absolute; top:3px; width:14px; height:8px; background:#34383f; clip-path:polygon(50% 0, 100% 100%, 0 100%); }
+.mini-icon-home .mini-icon-base { position:absolute; bottom:4px; width:10px; height:7px; border:1.4px solid #34383f; }
+.mini-icon-search .mini-icon-lens { width:12px; height:12px; border-radius:50%; border:1.4px solid #34383f; }
+.mini-icon-user .mini-icon-head { position:absolute; top:5px; width:9px; height:9px; border-radius:50%; border:1.4px solid #34383f; }
+.mini-icon-user .mini-icon-body { position:absolute; bottom:3px; width:15px; height:8px; border-radius:8px 8px 0 0; border:1.4px solid #34383f; border-bottom:none; }
 .mini-card b { font-size:7px; }
 .mini-divider { width:100%; height:1.4px; background:#34383f; }
 .mini-topbar { flex-direction:row; align-items:center; justify-content:space-between; font-size:6.5px; }
