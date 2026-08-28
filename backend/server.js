@@ -1,13 +1,48 @@
 import cors from 'cors'
 import express from 'express'
 import crypto from 'node:crypto'
+import fs from 'node:fs'
 import os from 'node:os'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const app = express()
 const port = Number(process.env.PORT || 4000)
 const user = { id: 'super', password: '1234', name: '슈퍼 관리자' }
-const sessions = new Map()
 const projects = new Map()
+
+// Persist the signing secret to disk so login tokens survive server restarts during development.
+const secretPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '.auth-secret')
+const authSecret = process.env.AUTH_SECRET || (() => {
+  if (fs.existsSync(secretPath)) return fs.readFileSync(secretPath, 'utf8').trim()
+  const generated = crypto.randomBytes(32).toString('hex')
+  fs.writeFileSync(secretPath, generated)
+  return generated
+})()
+const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+function base64url(input) {
+  return Buffer.from(input).toString('base64url')
+}
+function sign(payload) {
+  return crypto.createHmac('sha256', authSecret).update(payload).digest('base64url')
+}
+function issueToken(userId) {
+  const payload = base64url(JSON.stringify({ userId, exp: Date.now() + TOKEN_TTL_MS }))
+  return `${payload}.${sign(payload)}`
+}
+function verifyToken(token) {
+  const [payload, signature] = token.split('.')
+  if (!payload || !signature) return null
+  if (sign(payload) !== signature) return null
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+    if (typeof data.exp !== 'number' || data.exp < Date.now()) return null
+    return data
+  } catch {
+    return null
+  }
+}
 
 app.use(cors({ origin: true }))
 app.use(express.json({ limit: '10mb' }))
@@ -18,7 +53,7 @@ function authToken(request) {
 }
 function requireAuth(request, response, next) {
   const token = authToken(request)
-  const session = token ? sessions.get(token) : null
+  const session = token ? verifyToken(token) : null
   if (!session) return response.status(401).json({ message: '로그인이 필요합니다.' })
   request.userId = session.userId
   request.token = token
@@ -36,11 +71,10 @@ app.get('/api/network-addresses', (_request, response) => {
 app.post('/api/auth/login', (request, response) => {
   const { id, password } = request.body ?? {}
   if (id !== user.id || password !== user.password) return response.status(401).json({ message: '아이디 또는 비밀번호가 올바르지 않습니다.' })
-  const token = crypto.randomBytes(24).toString('hex')
-  sessions.set(token, { userId: user.id })
+  const token = issueToken(user.id)
   response.json({ token, user: { id: user.id, name: user.name } })
 })
-app.post('/api/auth/logout', requireAuth, (request, response) => { sessions.delete(request.token); response.status(204).end() })
+app.post('/api/auth/logout', requireAuth, (_request, response) => { response.status(204).end() })
 app.get('/api/auth/me', requireAuth, (_request, response) => response.json({ id: user.id, name: user.name }))
 app.get('/api/projects', requireAuth, (_request, response) => response.json([...projects.values()].map(projectSummary)))
 app.post('/api/projects', requireAuth, (request, response) => {

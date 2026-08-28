@@ -3,6 +3,10 @@ const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostna
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('wireframe-token')
   const response = await fetch(`${API_URL}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers } })
+  if (response.status === 401 && token) {
+    localStorage.removeItem('wireframe-token')
+    window.location.reload()
+  }
   if (!response.ok) { const body = await response.json().catch(() => ({})) as { message?: string }; throw new Error(body.message || '서버 요청에 실패했습니다.') }
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }
