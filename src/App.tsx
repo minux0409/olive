@@ -429,17 +429,15 @@ function EditorApp() {
             />
           </div>
         )}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
-          <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />
-          <div className="canvas-wrap">
-            <WireframeCanvas
-              onMount={(api) => { apiRef.current = api }}
-              onChange={onChange}
-              onDropControl={handleDrop}
-              onAddAtCenter={() => setPendingType(controlDefinitions[0])}
-              empty={!elements.length}
-            />
-          </div>
+        <ControlPalette definitions={controlDefinitions} onAdd={(definition) => addControl(definition)} />
+        <div className="canvas-wrap">
+          <WireframeCanvas
+            onMount={(api) => { apiRef.current = api }}
+            onChange={onChange}
+            onDropControl={handleDrop}
+            onAddAtCenter={() => setPendingType(controlDefinitions[0])}
+            empty={!elements.length}
+          />
         </div>
         {rightOpen && <PropertiesPanel element={selected} onUpdate={updateSelected} />}
       </div>
