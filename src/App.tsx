@@ -28,8 +28,12 @@ function GuestRoute({ shareId }: { shareId: string }) {
   if (guestError) return <main className="guest-error"><h1>공유 프로젝트를 열 수 없습니다.</h1><p>{guestError}</p></main>
   if (!guestProject) return <main className="guest-error"><p>공유 프로젝트를 불러오는 중입니다...</p></main>
   
-  const document = guestProject.document as { slides?: Slide[] }
-  const firstSlide = document.slides?.[0]
+  let firstSlide: Slide | undefined
+  try {
+    firstSlide = parseProjectFile(guestProject.document).slides[0]
+  } catch {
+    firstSlide = undefined
+  }
   if (!firstSlide) return <main className="guest-error"><p>슬라이드가 없습니다.</p></main>
   
   return <GuestCanvas name={guestProject.name} elements={firstSlide.elements ?? []} appState={firstSlide.appState ?? {}} files={firstSlide.files ?? {}} />
@@ -155,16 +159,16 @@ function EditorApp() {
     if (!newSlide) return
     
     setCurrentSlideId(slideId)
-    setElements(newSlide.elements)
-    setFiles(newSlide.files)
+    setElements(newSlide.elements ?? [])
+    setFiles(newSlide.files ?? {})
     
     const api = apiRef.current
     if (api) {
       api.updateScene({
-        elements: newSlide.elements,
+        elements: newSlide.elements ?? [],
         appState: { ...api.getAppState(), ...newSlide.appState, collaborators: new Map() }
       })
-      api.addFiles(Object.values(newSlide.files))
+      api.addFiles(Object.values(newSlide.files ?? {}))
     }
   }
 
@@ -323,7 +327,7 @@ function EditorApp() {
   const saveToServer = async () => {
     if (!appState) return
     try {
-      const result = await api.saveProject(projectName, { slides }, serverProjectId)
+      const result = await api.saveProject(projectName, { ...makeProjectFile(projectName, slides) }, serverProjectId)
       setServerProjectId(result.id)
       const addresses = await api.networkAddresses()
       const baseUrl = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
@@ -357,15 +361,13 @@ function EditorApp() {
   const openRemoteProject = async (project: Awaited<ReturnType<typeof api.projects>>[number]) => {
     try {
       const remote = await api.sharedProject(project.id)
-      const document = remote.document as { slides?: Slide[] }
+      const restored = parseProjectFile(remote.document)
       
-      if (!document.slides || document.slides.length === 0) throw new Error('슬라이드가 없습니다.')
-      
-      setSlides(document.slides)
+      setSlides(restored.slides)
       setProjectName(remote.name)
       setServerProjectId(remote.id)
       
-      const firstSlide = document.slides[0]
+      const firstSlide = restored.slides[0]
       setCurrentSlideId(firstSlide.id)
       setElements(firstSlide.elements)
       setFiles(firstSlide.files)

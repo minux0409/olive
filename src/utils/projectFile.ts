@@ -30,21 +30,34 @@ export function makeProjectFile(projectName: string, slides: Slide[]): ProjectFi
   }
 }
 
+// Guards against corrupted/partial slide data (e.g. from a previous broken save)
+function sanitizeSlide(value: unknown): Slide {
+  const candidate = (value ?? {}) as Partial<Slide>
+  return {
+    id: typeof candidate.id === 'string' ? candidate.id : generateUUID(),
+    name: typeof candidate.name === 'string' ? candidate.name : 'Slide',
+    elements: Array.isArray(candidate.elements) ? candidate.elements : [],
+    appState: candidate.appState ?? {},
+    files: candidate.files ?? {},
+    createdAt: candidate.createdAt ?? new Date().toISOString(),
+    updatedAt: candidate.updatedAt ?? new Date().toISOString(),
+  }
+}
+
 export function parseProjectFile(value: unknown): ProjectFile {
   if (!value || typeof value !== 'object') throw new Error('파일 형식이 올바르지 않습니다.')
   const candidate = value as Partial<ProjectFile> & Partial<ProjectFileV1>
 
-  // Handle new format (v2)
-  if (candidate.formatVersion === 2) {
-    if (!Array.isArray(candidate.slides) || typeof candidate.projectName !== 'string') {
-      throw new Error('Wireframe Studio 파일이 아닙니다.')
-    }
+  // Handle new format (v2), including server documents saved without an explicit formatVersion
+  if (candidate.formatVersion === 2 || (Array.isArray(candidate.slides) && !('elements' in candidate))) {
+    if (!Array.isArray(candidate.slides)) throw new Error('Wireframe Studio 파일이 아닙니다.')
+    const slides = candidate.slides.map(sanitizeSlide)
     return {
       formatVersion: 2,
-      projectName: candidate.projectName,
+      projectName: typeof candidate.projectName === 'string' ? candidate.projectName : '내 와이어프레임',
       createdAt: candidate.createdAt ?? new Date().toISOString(),
       updatedAt: candidate.updatedAt ?? new Date().toISOString(),
-      slides: candidate.slides,
+      slides: slides.length ? slides : [createSlide('Slide 1', [], {}, {})],
     }
   }
 
